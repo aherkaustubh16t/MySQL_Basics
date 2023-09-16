@@ -1,0 +1,143 @@
+Delimiter $$
+create procedure f1(in rn int,in b int,in dr date) 
+begin
+declare i date;
+declare temp int;
+update student_book set Dor=dr 
+where rno=rn and bid=b;
+select Doi into i from student_book where rno=rn and bid=b;
+set temp=DATEDIFF(dr,i);
+if (temp>=15 and temp<=30) then
+update fine_book set amt=5*temp,status='r' where rno=rn and bid=b;
+elseif temp>=30 and temp<=50 then
+update fine_book set amt=10*temp,status='r' where rno=rn and bid=b;
+elseif temp>50 then
+update fine_book set amt=20*temp,status='r' where rno=rn and bid=b;
+end if;
+end $$
+delimiter ;
+
+
+
+delimiter $$
+create trigger T1
+before insert on student_book
+for each row
+begin 
+insert into fine_book(rno,bid,status)values(new.rno,new.bid,'I');
+end $$
+delimiter ; 
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| event              |
+| info               |
+| information_schema |
+| mysql              |
+| performance_schema |
+| student            |
+| sys                |
+| wscube             |
++--------------------+
+8 rows in set (0.00 sec)
+
+mysql> use student;
+Database changed
+mysql> show tables;
++-------------------+
+| Tables_in_student |
++-------------------+
+| dept              |
+| manoj             |
+| student_book      |
+| student_info      |
++-------------------+
+4 rows in set (0.02 sec)
+
+mysql> select * from student_book
+    -> ;
++-----+------+------------+------+
+| rno | bid  | Doi        | Dor  |
++-----+------+------------+------+
+|   1 |  101 | 2023-04-02 | NULL |
+|   2 |  102 | 2023-04-05 | NULL |
++-----+------+------------+------+
+2 rows in set (0.05 sec)
+
+mysql> create table fine_book(rno int(10),bid int(10),status varchar(10),amt int(20),foreign key(rno) references student_book(rno));
+Query OK, 0 rows affected, 3 warnings (0.06 sec)
+
+mysql> insert into fine_book values(1,101,'I',0);
+Query OK, 1 row affected (0.02 sec)
+
+mysql> drop procedure f1;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> source E:\c2\notepad\fine.sql
+Query OK, 0 rows affected (0.00 sec)
+
+ERROR 1359 (HY000): Trigger already exists
+mysql> drop trigger T1;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> source E:\c2\notepad\fine.sql
+ERROR 1304 (42000): PROCEDURE f1 already exists
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> drop procedure f1;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> drop trigger T1;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> source E:\c2\notepad\fine.sql
+Query OK, 0 rows affected (0.01 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+
+mysql> drop trigger T1;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> drop procedure f1;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> source E:\c2\notepad\fine.sql
+Query OK, 0 rows affected (0.01 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> call f1(1,101,"2023-04-22");
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from fine_book;
++------+------+--------+------+
+| rno  | bid  | status | amt  |
++------+------+--------+------+
+|    1 |  101 | r      |  100 |
++------+------+--------+------+
+1 row in set (0.00 sec)
+
+mysql> insert into fine_book value(2,102,"I",0);
+Query OK, 1 row affected (0.04 sec)
+
+mysql> source E:\c2\notepad\fine.sql
+Query OK, 0 rows affected (0.04 sec)
+
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> call f1(2,102,"2023-05-10");
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from fine_book;
++------+------+--------+------+
+| rno  | bid  | status | amt  |
++------+------+--------+------+
+|    1 |  101 | r      |  100 |
+|    2 |  102 | r      |  350 |
++------+------+--------+------+
+2 rows in set (0.00 sec)
+
+mysql>
